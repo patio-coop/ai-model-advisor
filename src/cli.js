@@ -1,5 +1,5 @@
 /**
- * AI Model Advisor — CLI entry point.
+ * OSAI — CLI entry point.
  * Renders the interactive TUI with ink.
  */
 
@@ -13,11 +13,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function printHelp() {
   console.log(`
-  AI Model Advisor — find the right open LLM for your stack
+  OSAI — open-source AI compass
+
+  Find and deploy the right open LLM for your stack.
 
   Usage
-    $ ai-model-advisor
-    $ ai-model-advisor --repo <path>
+    $ osai
+    $ osai --repo <path>
 
   Options
     --help, -h       Show this help message
@@ -26,18 +28,18 @@ function printHelp() {
                      (skips interactive wizard)
 
   Description
-    Interactive CLI wizard that recommends the best open-source LLM
-    based on your use case, hardware, and requirements. Fetches live
-    data from HuggingFace, SWE-bench, and Aider leaderboards.
+    Interactive CLI that recommends the best open-source LLM based on
+    your use case, hardware, and requirements. Fetches live data from
+    HuggingFace, SWE-bench, and Aider leaderboards.
 
     Use --repo to point at a local repo and get instant recommendations
     based on auto-detected languages, frameworks, and project size.
 
   Examples
-    $ ai-model-advisor
-    $ ai-model-advisor --repo .
-    $ ai-model-advisor --repo ~/projects/my-app
-    $ npx ai-model-advisor --repo /path/to/repo
+    $ osai
+    $ osai --repo .
+    $ osai --repo ~/projects/my-app
+    $ npx osai --repo /path/to/repo
 `);
 }
 

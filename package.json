@@ -1,10 +1,10 @@
 {
-  "name": "ai-model-advisor",
-  "version": "0.1.0",
-  "description": "AI model recommendation engine for developers — find the right open LLM for your stack",
+  "name": "osai",
+  "version": "1.0.0",
+  "description": "Open-source AI compass — find and deploy the right open LLM for your stack",
   "type": "module",
   "bin": {
-    "ai-model-advisor": "./dist/cli.js"
+    "osai": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "prepublishOnly": "node build.js",
     "prepare": "node build.js"
   },
-  "keywords": ["ai", "llm", "model", "recommendation", "developer", "tui", "cli"],
+  "keywords": ["ai", "llm", "open-source", "osai", "model", "recommendation", "deploy", "developer", "tui", "cli"],
   "author": "",
   "license": "MIT",
   "files": ["dist", "src"],

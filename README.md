@@ -1,23 +1,23 @@
-# PATIO — AI Model Advisor
+# OSAI — Open-Source AI Compass
 
 Interactive CLI that recommends the best open-source LLM for your stack, hardware, and use case. Point it at a repo and get model recommendations with copy-paste setup commands — no API keys required.
 
 ```
- ____   _  _____ ___ ___
-|  _ \ / \|_   _|_ _/ _ \
-| |_) / _ \ | |  | | | | |
-|  __/ ___ \| |  | | |_| |
-|_| /_/   \_\_| |___\___/
+  ___  ____    _    ___
+ / _ \/ ___|  / \  |_ _|
+| | | \___ \ / _ \  | |
+| |_| |___) / ___ \ | |
+ \___/|____/_/   \_\___|
 ```
 
 ## Quick start
 
 ```bash
 # Analyze a repo and get instant recommendations
-npx ai-model-advisor --repo .
+npx osai --repo .
 
 # Or run the interactive wizard
-npx ai-model-advisor
+npx osai
 ```
 
 ## What it does
@@ -29,8 +29,8 @@ Scores 32 open-source models across seven weighted dimensions to find the best f
 Point at any local repo. The analyzer scans your codebase and auto-detects languages, frameworks, runtime, platform, and project size — then skips straight to recommendations.
 
 ```bash
-ai-model-advisor --repo .
-ai-model-advisor --repo ~/projects/my-api
+osai --repo .
+osai --repo ~/projects/my-api
 ```
 
 ### Interactive wizard
@@ -62,21 +62,21 @@ Answer six quick questions about your development environment:
 ## Install
 
 ```bash
-npx ai-model-advisor
+npx osai
 ```
 
 Or install globally:
 
 ```bash
-npm install -g ai-model-advisor
-ai-model-advisor
+npm install -g osai
+osai
 ```
 
 ## Development
 
 ```bash
-git clone https://github.com/patio-coop/ai-model-advisor.git
-cd ai-model-advisor
+git clone https://github.com/patio-coop/osai.git
+cd osai
 npm install
 npm run dev    # build + run
 npm test       # run tests
@@ -104,7 +104,7 @@ Live leaderboard data from HuggingFace, SWE-bench, and Aider is fetched in paral
 src/
 ├── cli.js                 # Entry point, flag parsing (--repo, --help, --version)
 ├── app.js                 # State machine (welcome → wizard → loading → results)
-├── theme.js               # Patio design system tokens
+├── theme.js               # OSAI design system tokens
 ├── analyzer/
 │   └── repo.js            # Repository scanner (languages, frameworks, runtime)
 ├── components/

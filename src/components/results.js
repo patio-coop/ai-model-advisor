@@ -70,7 +70,7 @@ function Header() {
       borderStyle="double"
       borderColor={C.accent}
     >
-      <Text bold color={C.accent}>PATIO</Text>
+      <Text bold color={C.accent}>OSAI</Text>
       <Text bold color={C.accentDim}>RECOMMENDATION</Text>
     </Box>
   );
@@ -681,8 +681,8 @@ export default function Results({ recommendation, leaderboards }) {
       {/* Footer */}
       <Box justifyContent="center" marginTop={1}>
         <Text dimColor>Powered by </Text>
-        <Text bold color={C.accent}>PATIO</Text>
-        <Text dimColor> — patio.coop</Text>
+        <Text bold color={C.accent}>OSAI</Text>
+        <Text dimColor> — open-source AI compass</Text>
       </Box>
     </Box>
   );

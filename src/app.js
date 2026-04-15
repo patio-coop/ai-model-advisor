@@ -2,7 +2,7 @@
  * Main app component — orchestrates the full TUI flow:
  *   welcome  ->  wizard  ->  loading  ->  results
  *
- * Patio Design System branding applied throughout.
+ * OSAI Design System branding applied throughout.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -16,13 +16,13 @@ import { recommend } from './engine/rules.js';
 import { fetchAllLeaderboards, enrichModelWithLeaderboardData } from './api/index.js';
 import { THEME } from './theme.js';
 
-// ── Patio Header — reused across wizard/loading screens ──────────────
+// ── OSAI Header — reused across wizard/loading screens ───────────────
 
-function PatioHeader({ compact = false }) {
+function OsaiHeader({ compact = false }) {
   if (compact) {
     return (
       <Box marginBottom={1} gap={1}>
-        <Text bold color={THEME.colors.accent}>PATIO</Text>
+        <Text bold color={THEME.colors.accent}>OSAI</Text>
         <Text dimColor>|</Text>
         <Text color={THEME.colors.textSecondary}>{THEME.brand.tagline}</Text>
       </Box>
@@ -32,7 +32,7 @@ function PatioHeader({ compact = false }) {
   return (
     <Box flexDirection="column" marginBottom={1}>
       <Box gap={1}>
-        <Text bold color={THEME.colors.accent}>PATIO</Text>
+        <Text bold color={THEME.colors.accent}>OSAI</Text>
         <Text color={THEME.colors.textSecondary}>— {THEME.brand.tagline}</Text>
       </Box>
     </Box>
@@ -201,9 +201,9 @@ export default function App({ repoData }) {
           <Text color={THEME.colors.accent} dimColor>{THEME.logo}</Text>
         </Box>
 
-        {/* PATIO BigText with green gradient */}
+        {/* OSAI BigText with green gradient */}
         <Gradient name="mind">
-          <BigText text="PATIO" font="chrome" />
+          <BigText text="OSAI" font="chrome" />
         </Gradient>
 
         {/* Subtitle */}
@@ -226,7 +226,7 @@ export default function App({ repoData }) {
   if (stage === 'wizard') {
     return (
       <Box flexDirection="column" paddingX={1}>
-        <PatioHeader />
+        <OsaiHeader />
         <Wizard onComplete={onWizardComplete} />
       </Box>
     );
@@ -237,7 +237,7 @@ export default function App({ repoData }) {
   if (stage === 'loading') {
     return (
       <Box flexDirection="column" paddingX={1} paddingY={1}>
-        <PatioHeader />
+        <OsaiHeader />
         {hasRepo ? <RepoSummary analysis={repoData.analysis} /> : null}
         <Loading sourceStatus={sourceStatus} />
       </Box>

@@ -1,11 +1,11 @@
-// Patio Design System — Terminal Theme
+// OSAI Design System — Terminal Theme
 // Maps Figma design tokens to terminal-compatible values for ink/chalk
 
 export const THEME = {
   brand: {
-    name: 'PATIO',
-    tagline: 'AI MODEL ADVISOR',
-    subtitle: 'Find the right open LLM for your stack',
+    name: 'OSAI',
+    tagline: 'OPEN-SOURCE AI COMPASS',
+    subtitle: 'Find and deploy the right open LLM for your stack',
   },
   colors: {
     // Primary
@@ -49,12 +49,12 @@ export const THEME = {
     '        \\  `--\'  /        ',
     '         `--~~--\'         ',
   ].join('\n'),
-  // "PATIO" block wordmark — clean, bold, max 5 lines
+  // "OSAI" block wordmark — clean, bold, max 5 lines
   wordmark: [
-    ' ____   _  _____ ___ ___  ',
-    '|  _ \\ / \\|_   _|_ _/ _ \\ ',
-    '| |_) / _ \\ | |  | | | | |',
-    '|  __/ ___ \\| |  | | |_| |',
-    '|_| /_/   \\_\\_| |___\\___/ ',
+    '  ___  ____    _    ___ ',
+    ' / _ \\/ ___|  / \\  |_ _|',
+    '| | | \\___ \\ / _ \\  | | ',
+    '| |_| |___) / ___ \\ | | ',
+    ' \\___/|____/_/   \\_\\___|',
   ].join('\n'),
 };
