@@ -18,28 +18,25 @@ function printHelp() {
   Find and deploy the right open LLM for your stack.
 
   Usage
-    $ osaikit
-    $ osaikit --repo <path>
+    $ osaikit                          Interactive wizard
+    $ osaikit --repo <path>            Auto-detect and recommend
+    $ osaikit run local                Deploy locally via ollama
+    $ osaikit run local --repo <path>  Analyze repo + deploy locally
 
   Options
     --help, -h       Show this help message
     --version, -v    Show version number
-    --repo <path>    Analyze a repository and recommend models
-                     (skips interactive wizard)
+    --repo <path>    Analyze a repository
+    --model <id>     Use a specific model (with run local)
 
-  Description
-    Interactive CLI that recommends the best open-source LLM based on
-    your use case, hardware, and requirements. Fetches live data from
-    HuggingFace, SWE-bench, and Aider leaderboards.
-
-    Use --repo to point at a local repo and get instant recommendations
-    based on auto-detected languages, frameworks, and project size.
+  Commands
+    run local        Recommend + install + serve via ollama
 
   Examples
     $ osaikit
     $ osaikit --repo .
-    $ osaikit --repo ~/projects/my-app
-    $ npx osaikit --repo /path/to/repo
+    $ osaikit run local --repo .
+    $ osaikit run local --model qwen2.5-coder-7b
 `);
 }
 
@@ -68,6 +65,16 @@ if (args.includes('--help') || args.includes('-h')) {
 
 if (args.includes('--version') || args.includes('-v')) {
   printVersion();
+  process.exit(0);
+}
+
+// Check for "run local" subcommand
+if (args[0] === 'run' && args[1] === 'local') {
+  const { runLocal } = await import('./run.js');
+  await runLocal({
+    repo: parseFlag(args, '--repo'),
+    model: parseFlag(args, '--model'),
+  });
   process.exit(0);
 }
 

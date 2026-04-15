@@ -187,6 +187,8 @@ function lmStudioCmd(modelName) {
 
 // ── Main generator ──────────────────────────────────────────────────
 
+export { ECOSYSTEM_IDS };
+
 export function generateQuickStart(model, deploymentOption) {
   const ids = ECOSYSTEM_IDS[model.id] || {};
   const commands = {};
