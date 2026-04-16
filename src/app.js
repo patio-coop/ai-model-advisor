@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Text, Newline } from 'ink';
+import { Box, Text, Newline, useStdout } from 'ink';
 import Gradient from 'ink-gradient';
 import BigText from 'ink-big-text';
 import Wizard from './components/wizard.js';
@@ -15,6 +15,23 @@ import Loading from './components/loading.js';
 import { recommend } from './engine/rules.js';
 import { fetchAllLeaderboards, enrichModelWithLeaderboardData } from './api/index.js';
 import { THEME } from './theme.js';
+
+function useTerminalSize() {
+  const { stdout } = useStdout();
+  const [size, setSize] = useState({ width: stdout?.columns || 80, height: stdout?.rows || 24 });
+
+  useEffect(() => {
+    if (!stdout) return;
+    const handler = () => {
+      setSize({ width: stdout.columns, height: stdout.rows });
+    };
+    stdout.on('resize', handler);
+    handler();
+    return () => stdout.off('resize', handler);
+  }, [stdout]);
+
+  return size;
+}
 
 // ── OSAI Header — reused across wizard/loading screens ───────────────
 
@@ -100,6 +117,7 @@ function RepoSummary({ analysis }) {
 // ── Main App ─────────────────────────────────────────────────────────
 
 export default function App({ repoData }) {
+  const { width, height } = useTerminalSize();
   const hasRepo = repoData != null;
   const [stage, setStage] = useState(hasRepo ? 'loading' : 'welcome');
   const [answers, setAnswers] = useState(hasRepo ? repoData.inputs : null);
@@ -133,6 +151,12 @@ export default function App({ repoData }) {
     let cancelled = false;
 
     async function run() {
+      // Show loading for at least 1 second when repo is provided
+      if (hasRepo) {
+        await new Promise(r => setTimeout(r, 1000));
+        if (cancelled) return;
+      }
+
       // Fetch leaderboards with per-source status tracking
       let leaderboardData = null;
       try {
@@ -191,7 +215,7 @@ export default function App({ repoData }) {
     return () => {
       cancelled = true;
     };
-  }, [stage, answers]);
+  }, [stage, answers, hasRepo]);
 
   // ── Welcome screen ───────────────────────────────────────────────
 
@@ -250,9 +274,8 @@ export default function App({ repoData }) {
 
   if (stage === 'results') {
     return (
-      <Box flexDirection="column">
-        {hasRepo ? <RepoSummary analysis={repoData.analysis} /> : null}
-        <Results recommendation={recommendation} leaderboards={leaderboards} />
+      <Box flexDirection="column" width={width} height={height}>
+        <Results recommendation={recommendation} leaderboards={leaderboards} repoData={hasRepo ? repoData : null} terminalSize={{ width, height }} />
       </Box>
     );
   }

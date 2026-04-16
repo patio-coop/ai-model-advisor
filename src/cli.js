@@ -11,6 +11,20 @@ import { dirname, join, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+function enableFullScreen() {
+  process.stdout.write('\x1b[?1049h');
+  process.stdout.write('\x1b[?7l');
+  process.stdout.write('\x1b[2J');
+  process.stdout.write('\x1b[1;1H');
+}
+
+function disableFullScreen() {
+  process.stdout.write('\x1b[?1049l');
+  process.stdout.write('\x1b[?7h');
+  process.stdout.write('\x1b[2J');
+  process.stdout.write('\x1b[1;1H');
+}
+
 function printHelp() {
   console.log(`
   OSAI - open source AI kit
@@ -144,5 +158,12 @@ if (repoPath) {
 // Launch the TUI
 const App = (await import('./app.js')).default;
 
+enableFullScreen();
+
 const { waitUntilExit } = render(React.createElement(App, { repoData }));
+
+process.on('exit', () => {
+  disableFullScreen();
+});
+
 await waitUntilExit();

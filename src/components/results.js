@@ -4,11 +4,28 @@
  * on-device models, config, deployment details, leaderboard context, and warnings.
  */
 
-import React from 'react';
-import { Box, Text, Newline } from 'ink';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Box, Text, Newline, useInput, useStdout } from 'ink';
 import { THEME } from '../theme.js';
 
 const C = THEME.colors;
+
+function useTerminalSize() {
+  const { stdout } = useStdout();
+  const [size, setSize] = useState({ width: stdout?.columns || 80, height: stdout?.rows || 24 });
+
+  useEffect(() => {
+    if (!stdout) return;
+    const handler = () => {
+      setSize({ width: stdout.columns, height: stdout.rows });
+    };
+    stdout.on('resize', handler);
+    handler();
+    return () => stdout.off('resize', handler);
+  }, [stdout]);
+
+  return size;
+}
 
 // ── Utility helpers ──────────────────────────────────────────────────
 
@@ -59,7 +76,7 @@ function ScoreBar({ score }) {
 
 // ── Header ───────────────────────────────────────────────────────────
 
-function Header() {
+function Header({ width = 40 }) {
   return (
     <Box
       flexDirection="column"
@@ -69,9 +86,9 @@ function Header() {
       marginBottom={1}
       borderStyle="double"
       borderColor={C.accent}
+      width={width}
     >
-      <Text bold color={C.accent}>OSAI</Text>
-      <Text bold color={C.accentDim}>RECOMMENDATION</Text>
+      <Text bold color={C.accent}>OSAI RECOMMENDATION</Text>
     </Box>
   );
 }
@@ -602,9 +619,231 @@ function Warnings({ warnings }) {
   );
 }
 
-// ── Main Results Component ───────────────────────────────────────────
+// ── Tab Navigation ─────────────────────────────────────────────────────
 
-export default function Results({ recommendation, leaderboards }) {
+function MainTabs({ activeTab, tabs, onChange }) {
+  useInput((input, key) => {
+    const num = parseInt(input, 10);
+    if (!isNaN(num) && num >= 1 && num <= tabs.length) {
+      onChange(tabs[num - 1].key);
+    }
+    if (key.left) {
+      const idx = tabs.findIndex(t => t.key === activeTab);
+      const newIdx = idx > 0 ? idx - 1 : tabs.length - 1;
+      onChange(tabs[newIdx].key);
+    }
+    if (key.right) {
+      const idx = tabs.findIndex(t => t.key === activeTab);
+      const newIdx = idx < tabs.length - 1 ? idx + 1 : 0;
+      onChange(tabs[newIdx].key);
+    }
+  });
+
+  return (
+    <Box flexDirection="row" gap={2} marginBottom={1}>
+      {tabs.map((tab, idx) => (
+        <Box key={tab.key}>
+          {tab.key === activeTab ? (
+            <Text bold color={C.accent}>{idx + 1}. {tab.label}</Text>
+          ) : (
+            <Text dimColor>  {idx + 1}. {tab.label}</Text>
+          )}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+// ── Sub Tab Navigation ────────────────────────────────────────────────────
+
+function SubTabs({ activeSubTab, onChange }) {
+  const subTabs = [
+    { key: 'model', label: 'Model', shortcut: 'm' },
+    { key: 'info', label: 'Info', shortcut: 'i' },
+    { key: 'use', label: 'Use', shortcut: 'u' },
+    { key: 'prompt', label: 'Prompt', shortcut: 'p' },
+    { key: 'safety', label: 'Safety', shortcut: 's' },
+    { key: 'compliance', label: 'Compliance', shortcut: 'c' },
+  ];
+
+  useInput((input, key) => {
+    const num = parseInt(input, 10);
+    if (!isNaN(num) && num >= 1 && num <= subTabs.length) {
+      onChange(subTabs[num - 1].key);
+    }
+    if (key.left) {
+      const idx = subTabs.findIndex(t => t.key === activeSubTab);
+      const newIdx = idx > 0 ? idx - 1 : subTabs.length - 1;
+      onChange(subTabs[newIdx].key);
+    }
+    if (key.right) {
+      const idx = subTabs.findIndex(t => t.key === activeSubTab);
+      const newIdx = idx < subTabs.length - 1 ? idx + 1 : 0;
+      onChange(subTabs[newIdx].key);
+    }
+    const shortcut = input.toLowerCase();
+    const found = subTabs.find(t => t.shortcut === shortcut);
+    if (found) {
+      onChange(found.key);
+    }
+  });
+
+  return (
+    <Box flexDirection="row" gap={2} marginBottom={1}>
+      {subTabs.map((tab, idx) => (
+        <Box key={tab.key}>
+          {idx > 0 && <Text dimColor>|</Text>}
+          {tab.key === activeSubTab ? (
+            <Text bold color={C.accent}>[{tab.shortcut}] {tab.label}</Text>
+          ) : (
+            <Text dimColor>  ({tab.shortcut}) {tab.label}</Text>
+          )}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+function SingleModelView({ recommendation, leaderboards, repoData, terminalSize, showRepoOnly }) {
+  const { width = 80, height = 24 } = terminalSize || {};
+  const [activeSubTab, setActiveSubTab] = useState('model');
+  const { primary, fallback, costEstimate, latencyEstimate, ragRecommended, ragReason, warnings } = recommendation;
+
+  const maxWidth = Math.min(width - 2, 120);
+
+  const hasRepo = !!repoData?.analysis;
+  const analysis = repoData?.analysis;
+
+  if (showRepoOnly && hasRepo) {
+    return (
+      <Box flexDirection="column" paddingX={1} paddingY={1} width={maxWidth} height={height - 6} overflow="hidden">
+        <Header width={maxWidth} />
+        <Box marginBottom={1}>
+          <Box flexDirection="column" borderStyle="round" borderColor={C.accent} paddingX={2} paddingY={1}>
+            <Text bold color={C.accent}>REPO ANALYSIS</Text>
+            <Text dimColor>{analysis.path}</Text>
+            <Box gap={2}>
+              <Text dimColor>Files:</Text>
+              <Text>{analysis.fileCount}</Text>
+              <Text dimColor>Lines:</Text>
+              <Text>{analysis.totalLines.toLocaleString()}</Text>
+            </Box>
+            <Box gap={1}>
+              <Text dimColor>Languages:</Text>
+              <Text color={C.accent}>{analysis.languages.map((l) => `${l.name} (${l.files})`).join(', ')}</Text>
+            </Box>
+          </Box>
+        </Box>
+        <Box justifyContent="center" marginTop={1}>
+          <Text dimColor>Powered by </Text>
+          <Text bold color={C.accent}>OSAI</Text>
+          <Text dimColor> — open source AI kit</Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Box flexDirection="column" paddingX={1} paddingY={1} width={maxWidth} height={height - 6} overflow="hidden">
+      <Header width={maxWidth} />
+      <SubTabs activeSubTab={activeSubTab} onChange={setActiveSubTab} />
+      
+      {activeSubTab === 'model' && (
+        <>
+          <PrimaryModel primary={primary} />
+          <ModelCardSection modelCard={primary?.modelCard} />
+          <LeaderboardContext leaderboards={leaderboards} primaryModel={primary?.model} fallbackModel={fallback?.model} />
+          <RagAdvisory ragRecommended={ragRecommended} ragReason={ragReason} />
+        </>
+      )}
+
+      {activeSubTab === 'info' && (
+        <>
+          <ModelConfig config={primary?.config} />
+          <Warnings warnings={warnings} />
+        </>
+      )}
+
+      {activeSubTab === 'use' && (
+        <>
+          <Deployment primary={primary} costEstimate={costEstimate} latencyEstimate={latencyEstimate} />
+          <QuickStart quickStart={primary?.quickStart} />
+        </>
+      )}
+
+      {activeSubTab === 'prompt' && (
+        <>
+          <PromptTemplate template={primary?.promptTemplate} />
+        </>
+      )}
+
+      {activeSubTab === 'safety' && (
+        <>
+          <SafetySection safety={primary?.safetyRecommendation} />
+          <LicenseGuidance guidance={primary?.licenseGuidance} />
+        </>
+      )}
+
+      {activeSubTab === 'compliance' && (
+        <>
+          <ComplianceReport report={primary?.complianceReport} />
+          <IntegrationSnippet snippet={primary?.integrationSnippet} />
+        </>
+      )}
+      
+      <Box justifyContent="center" marginTop={1}>
+        <Text dimColor>Powered by </Text>
+        <Text bold color={C.accent}>OSAI</Text>
+        <Text dimColor> — open source AI kit</Text>
+      </Box>
+    </Box>
+  );
+}
+
+function FallbackOnlyView({ fallback, terminalSize }) {
+  const { width = 80, height = 24 } = terminalSize || {};
+  const maxWidth = Math.min(width - 2, 120);
+  const [activeSubTab, setActiveSubTab] = useState('model');
+
+  return (
+    <Box flexDirection="column" paddingX={1} paddingY={1} width={maxWidth} height={height - 6} overflow="hidden">
+      <Header width={maxWidth} />
+      
+      <FallbackModel fallback={fallback} />
+
+      <Box justifyContent="center" marginTop={1}>
+        <Text dimColor>Powered by </Text>
+        <Text bold color={C.accent}>OSAI</Text>
+        <Text dimColor> — open source AI kit</Text>
+      </Box>
+    </Box>
+  );
+}
+
+function OnDeviceOnlyView({ onDevice, terminalSize }) {
+  const { width = 80, height = 24 } = terminalSize || {};
+  const maxWidth = Math.min(width - 2, 120);
+
+  return (
+    <Box flexDirection="column" paddingX={1} paddingY={1} width={maxWidth} height={height - 6} overflow="hidden">
+      <Header width={maxWidth} />
+      
+      <OnDevice onDevice={onDevice} />
+
+      <Box justifyContent="center" marginTop={1}>
+        <Text dimColor>Powered by </Text>
+        <Text bold color={C.accent}>OSAI</Text>
+        <Text dimColor> — open source AI kit</Text>
+      </Box>
+    </Box>
+  );
+}
+
+export default function Results({ recommendation, leaderboards, repoData, terminalSize }) {
+  const { width = 80, height = 24 } = terminalSize || {};
+  const hasRepo = !!repoData?.analysis;
+  const [activeTab, setActiveTab] = useState(hasRepo ? 'repo' : 'primary');
+
   if (!recommendation) {
     return (
       <Box padding={2}>
@@ -613,77 +852,33 @@ export default function Results({ recommendation, leaderboards }) {
     );
   }
 
-  const {
-    primary,
-    fallback,
-    onDevice,
-    costEstimate,
-    latencyEstimate,
-    ragRecommended,
-    ragReason,
-    warnings,
-  } = recommendation;
+  const { primary, fallback, onDevice } = recommendation;
+  const hasFallback = !!fallback;
+  const hasOnDevice = !!onDevice;
+
+  let tabs;
+  if (hasRepo) {
+    tabs = [
+      { key: 'repo', label: 'Repo' },
+      { key: 'primary', label: 'Primary' },
+      ...(hasFallback ? [{ key: 'fallback', label: 'Fallback' }] : []),
+      ...(hasOnDevice ? [{ key: 'ondevice', label: 'On-Device' }] : []),
+    ];
+  } else {
+    tabs = [
+      { key: 'primary', label: 'Primary' },
+      ...(hasFallback ? [{ key: 'fallback', label: 'Fallback' }] : []),
+      ...(hasOnDevice ? [{ key: 'ondevice', label: 'On-Device' }] : []),
+    ];
+  }
 
   return (
-    <Box flexDirection="column" paddingX={1} paddingY={1}>
-      {/* 1. Header */}
-      <Header />
-
-      {/* 2. Primary Model */}
-      <PrimaryModel primary={primary} />
-
-      {/* Model Card */}
-      <ModelCardSection modelCard={primary?.modelCard} />
-
-      {/* 3. Model Config */}
-      <ModelConfig config={primary?.config} />
-
-      {/* 4. Deployment */}
-      <Deployment primary={primary} costEstimate={costEstimate} latencyEstimate={latencyEstimate} />
-
-      {/* 5. Quick Start */}
-      <QuickStart quickStart={primary?.quickStart} />
-
-      {/* 6. License Guidance */}
-      <LicenseGuidance guidance={primary?.licenseGuidance} />
-
-      {/* Compliance Report */}
-      <ComplianceReport report={primary?.complianceReport} />
-
-      {/* Safety & Moderation */}
-      <SafetySection safety={primary?.safetyRecommendation} />
-
-      {/* Integration Snippet */}
-      <IntegrationSnippet snippet={primary?.integrationSnippet} />
-
-      {/* 7. Prompt Template */}
-      <PromptTemplate template={primary?.promptTemplate} />
-
-      {/* 8. Fallback Model */}
-      <FallbackModel fallback={fallback} />
-
-      {/* 7. On-Device Option */}
-      <OnDevice onDevice={onDevice} />
-
-      {/* 8. Leaderboard Context */}
-      <LeaderboardContext
-        leaderboards={leaderboards}
-        primaryModel={primary?.model}
-        fallbackModel={fallback?.model}
-      />
-
-      {/* 9. RAG Advisory */}
-      <RagAdvisory ragRecommended={ragRecommended} ragReason={ragReason} />
-
-      {/* 10. Warnings */}
-      <Warnings warnings={warnings} />
-
-      {/* Footer */}
-      <Box justifyContent="center" marginTop={1}>
-        <Text dimColor>Powered by </Text>
-        <Text bold color={C.accent}>OSAI</Text>
-        <Text dimColor> — open source AI kit</Text>
-      </Box>
+    <Box flexDirection="column" width={width} height={height}>
+      <MainTabs activeTab={activeTab} tabs={tabs} onChange={setActiveTab} />
+      {hasRepo && activeTab === 'repo' && <SingleModelView recommendation={recommendation} leaderboards={leaderboards} repoData={repoData} showRepoOnly={true} terminalSize={{ width, height }} />}
+      {activeTab === 'primary' && <SingleModelView recommendation={recommendation} leaderboards={leaderboards} terminalSize={{ width, height }} />}
+      {activeTab === 'fallback' && hasFallback && <FallbackOnlyView fallback={fallback} terminalSize={{ width, height }} />}
+      {activeTab === 'ondevice' && hasOnDevice && <OnDeviceOnlyView onDevice={onDevice} terminalSize={{ width, height }} />}
     </Box>
   );
 }
