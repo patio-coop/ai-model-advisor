@@ -45,8 +45,8 @@ export const StepRole = ({ value, onChange }) => (
     <Label>WHAT KIND OF DEVELOPMENT DO YOU DO?</Label>
     <SelectInput
       items={ROLES}
-      initialIndex={ROLES.findIndex((r) => r.value === value) ?? 0}
-      onSelect={(item) => onChange(item.value)}
+      initialIndex={ROLES.findIndex((r) => r.value === value) >= 0 ? ROLES.findIndex((r) => r.value === value) : 0}
+      onSelect={(item) => item && onChange(item.value)}
       indicatorComponent={IndicatorComponent}
       itemComponent={ItemComponent}
     />
@@ -151,7 +151,7 @@ export const StepStack = ({ value, onChange }) => {
             <SelectInput
               items={RUNTIMES}
               initialIndex={Math.max(0, RUNTIMES.findIndex((r) => r.value === data.runtime))}
-              onSelect={handleSelectSubmit}
+              onSelect={(item) => item && handleSelectSubmit(item)}
               indicatorComponent={IndicatorComponent}
               itemComponent={ItemComponent}
             />
@@ -164,7 +164,7 @@ export const StepStack = ({ value, onChange }) => {
             <SelectInput
               items={PLATFORMS}
               initialIndex={Math.max(0, PLATFORMS.findIndex((p) => p.value === data.platform))}
-              onSelect={handleSelectSubmit}
+              onSelect={(item) => item && handleSelectSubmit(item)}
               indicatorComponent={IndicatorComponent}
               itemComponent={ItemComponent}
             />
@@ -237,6 +237,7 @@ export const StepConstraints = ({ value, onChange }) => {
   const field = CONSTRAINT_FIELDS[fieldIdx];
 
   const handleSelect = (item) => {
+    if (!item) return;
     const updated = { ...data, [field]: item.value };
     onChange(updated);
     if (fieldIdx < CONSTRAINT_FIELDS.length - 1) {
@@ -244,7 +245,7 @@ export const StepConstraints = ({ value, onChange }) => {
     }
   };
 
-  useInput((_input, key) => {
+  useInput((input, key) => {
     if (key.shift && key.tab) {
       if (fieldIdx > 0) setFieldIdx(fieldIdx - 1);
     } else if (key.tab && !key.shift) {
@@ -352,7 +353,7 @@ export const StepLicense = ({ value, onChange }) => (
     <SelectInput
       items={LICENSE_OPTS}
       initialIndex={Math.max(0, LICENSE_OPTS.findIndex((o) => o.value === value))}
-      onSelect={(item) => onChange(item.value)}
+      onSelect={(item) => item && onChange(item.value)}
       indicatorComponent={IndicatorComponent}
       itemComponent={ItemComponent}
     />
@@ -386,6 +387,7 @@ export const StepContext = ({ value, onChange }) => {
   const field = CONTEXT_FIELDS[fieldIdx];
 
   const handleSelect = (item) => {
+    if (!item) return;
     const updated = { ...data, [field]: item.value };
     onChange(updated);
     if (fieldIdx < CONTEXT_FIELDS.length - 1) {
@@ -393,7 +395,7 @@ export const StepContext = ({ value, onChange }) => {
     }
   };
 
-  useInput((_input, key) => {
+  useInput((input, key) => {
     if (key.shift && key.tab) {
       if (fieldIdx > 0) setFieldIdx(fieldIdx - 1);
     } else if (key.tab && !key.shift) {
@@ -417,7 +419,7 @@ export const StepContext = ({ value, onChange }) => {
       <SelectInput
         items={options}
         initialIndex={Math.max(0, options.findIndex((o) => o.value === data[field]))}
-        onSelect={handleSelect}
+        onSelect={(item) => item && handleSelect(item)}
         indicatorComponent={IndicatorComponent}
         itemComponent={ItemComponent}
       />
